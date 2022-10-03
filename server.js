@@ -1,85 +1,36 @@
 import puppeteer from 'puppeteer-extra';
 import express from 'express';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import cors from 'cors';
 
 const port = process.env.PORT || 8080;
 puppeteer.use(StealthPlugin());
 const app = express();
-// const puppeteer = puppeteer();
-const waitTillHTMLRendered = async (page, timeout = 30000) => {
-	const checkDurationMsecs = 1000;
-	const maxChecks = timeout / checkDurationMsecs;
-	let lastHTMLSize = 0;
-	let checkCounts = 1;
-	let countStableSizeIterations = 0;
-	const minStableSizeIterations = 3;
 
-	while (checkCounts++ <= maxChecks) {
-		let html = await page.content();
-		let currentHTMLSize = html.length;
-
-		let bodyHTMLSize = await page.evaluate(
-			() => document.body.innerHTML.length
-		);
-
-		console.log(
-			'last: ',
-			lastHTMLSize,
-			' <> curr: ',
-			currentHTMLSize,
-			' body html size: ',
-			bodyHTMLSize
-		);
-
-		if (lastHTMLSize != 0 && currentHTMLSize == lastHTMLSize)
-			countStableSizeIterations++;
-		else countStableSizeIterations = 0; //reset the counter
-
-		if (countStableSizeIterations >= minStableSizeIterations) {
-			console.log('Page rendered fully..');
-			break;
-		}
-
-		lastHTMLSize = currentHTMLSize;
-		await page.waitForTimeout(checkDurationMsecs);
-	}
-};
+app.disable('x-powered-by');
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const start = async () => {
 	const browser = await puppeteer.launch();
 	const page = await browser.newPage();
-	await page.goto('https://kayak.co.uk');
-	await waitTillHTMLRendered(page);
-	await page.type('.zEiP-destination .k_my-input', 'Budapest');
-	await page.click('.zEiP-formField.zEiP-submit');
-	// const pause = setTimeout(() => 5000);
-	// pause()
-	console.log('taking image 1');
-	await page.screenshot({ path: 'kayak1.png' });
-	console.log('done');
-	console.log('taking another image 2');
-	await page.screenshot({ path: 'kayak2.png' });
-	await page.click('.iInN-decline');
-	console.log('taking another image 3');
-	await page.screenshot({ path: 'kayak3.png' });
-	await page.click('.iInN-decline');
-	await page.click('.JyN0-pres-item-mcfly'),
-		await page.screenshot({ path: 'kayak4.png' });
-	console.log('done');
-	console.log('last image');
-	// await waitTillHTMLRendered(page);
-	await page.click('.iInN-decline');
-	await page.click('.zEiP-formField.zEiP-submit');
-	// await page.waitForFunction('renderingCompleted === true');
-	const wait = setTimeout(async () => {
-		await page.screenshot({ path: 'kayak5.png' });
-		console.log('done');
-		await browser.close();
-	}, 2000);
+	await page.goto(
+		'https://www.kayak.co.uk/flights/LON-BUD/2022-11-01/2022-11-08?sort=price_a'
+	);
 
-	// await page.screenshot({ path: 'kayak5.png' });
-	// console.log('done');
+	let results = await page.$$eval('.col-info.result-column', (result) => {
+		return result.slice(1, 11).map((result) => result.innerText);
+	});
+
+	results = results.map((result) => {
+		const provider = result.split(/\r?\n/)[12];
+		const price = result.match(/\£[0-9]+/)[0].slice(1, 3);
+		return { provider: provider, price: +price };
+	});
+	console.log(results);
 };
+
 start();
 
 app.listen(port, () => {

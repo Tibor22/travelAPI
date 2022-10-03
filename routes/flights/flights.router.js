@@ -1,8 +1,8 @@
-import express from 'express';
+import { Router } from 'express';
 import { getCheapestFlightsForCountry } from '../../controller/flights.controller.js';
 
-const flightsRouter = express.Router();
+const flightsRouter = new Router();
 
-flightsRouter.use('/', getCheapestFlightsForCountry);
+flightsRouter.get('/flight', getCheapestFlightsForCountry);
 
 export default flightsRouter;

@@ -19,20 +19,20 @@ export const getFlightBetweenTwoCountry = async (
 		'to:',
 		to
 	);
-	// await page.goto(
-	// 	'https://www.kayak.co.uk/flights/LON-BUD/2022-11-01/2022-11-08?sort=price_a'
-	// );
+
 	await page.goto(
 		`https://www.kayak.co.uk/flights/${origin}-${destination}/${from}/${to}?sort=price_a&fs=stops=0`,
 		{
 			waitUntil: 'networkidle0',
 		}
-	),
-		await Promise.all([waitForDOMToSettle(page)]);
+	);
+	// await Promise.all([waitForDOMToSettle(page)]);
+	await page.waitForSelector('.price-text');
 
 	let results = [];
+
 	results = await page.$$eval('.inner-grid.keel-grid', (result) => {
-		return result.slice(0, 10).map((result) => result.innerText);
+		return result.slice(0, 1).map((result) => result.innerText);
 	});
 
 	console.log('RESULTS: ', results);

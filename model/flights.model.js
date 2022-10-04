@@ -23,12 +23,16 @@ export const getFlightBetweenTwoCountry = async (
 	// 	'https://www.kayak.co.uk/flights/LON-BUD/2022-11-01/2022-11-08?sort=price_a'
 	// );
 	await page.goto(
-		`https://www.kayak.co.uk/flights/${origin}-${destination}/${from}/${to}?sort=price_a&fs=stops=0`
-	);
-	await waitForDOMToSettle(page);
+		`https://www.kayak.co.uk/flights/${origin}-${destination}/${from}/${to}?sort=price_a&fs=stops=0`,
+		{
+			waitUntil: 'networkidle0',
+		}
+	),
+		await Promise.all([waitForDOMToSettle(page)]);
+
 	let results = [];
 	results = await page.$$eval('.inner-grid.keel-grid', (result) => {
-		return result.slice(1, 12).map((result) => result.innerText);
+		return result.slice(0, 10).map((result) => result.innerText);
 	});
 
 	console.log('RESULTS: ', results);
@@ -42,7 +46,7 @@ export const getFlightBetweenTwoCountry = async (
 	return results;
 };
 
-const waitForDOMToSettle = (page, timeoutMs = 30000, debounceMs = 1000) =>
+const waitForDOMToSettle = (page, timeoutMs = 60000, debounceMs = 1000) =>
 	page.evaluate(
 		(timeoutMs, debounceMs) => {
 			let debounce = (func, ms = 1000) => {

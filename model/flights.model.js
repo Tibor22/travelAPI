@@ -21,67 +21,34 @@ export const getFlightBetweenTwoCountry = async (
 	);
 
 	await page.goto(
-		`https://www.kayak.co.uk/flights/${origin}-${destination}/${from}/${to}?sort=price_a&fs=stops=0`,
+		`https://www.kayak.co.uk/flights/${origin}-${destination}/${from}/${to}?sort=price_a&fs=stops=1`,
 		{
 			waitUntil: 'networkidle0',
 		}
 	);
-	// await Promise.all([waitForDOMToSettle(page)]);
 	await page.waitForSelector('.price-text');
 
 	let results = [];
 
 	results = await page.$$eval('.inner-grid.keel-grid', (result) => {
-		return result.slice(0, 1).map((result) => result.innerText);
+		return result.slice(0, 5).map((result) => result.innerText);
 	});
 
 	console.log('RESULTS: ', results);
 
-	results = results.map((result) => {
-		const provider = result.split(/\r?\n/)[12];
-		const price = result.match(/\£[0-9]+/)[0].slice(1, 4);
+	results = results.map((result, i, arr) => {
+		let provider;
+		if (result.split(/\r?\n/).includes('1 stop')) {
+			provider = result.split(/\r?\n/)[14];
+		} else {
+			provider = result.split(/\r?\n/)[12];
+		}
+
+		const price = result.match(/\£[0-9]+/)[0]?.slice(1, 4) || 'see link';
+
+		if (provider == '1 stop') provider = 'Multiple Airlines';
 		return { provider: provider, price: +price };
 	});
 
 	return results;
 };
-
-const waitForDOMToSettle = (page, timeoutMs = 60000, debounceMs = 1000) =>
-	page.evaluate(
-		(timeoutMs, debounceMs) => {
-			let debounce = (func, ms = 1000) => {
-				let timeout;
-				return (...args) => {
-					console.log('in debounce, clearing timeout again');
-					clearTimeout(timeout);
-					timeout = setTimeout(() => {
-						func.apply(this, args);
-					}, ms);
-				};
-			};
-			return new Promise((resolve, reject) => {
-				let mainTimeout = setTimeout(() => {
-					observer.disconnect();
-					reject(new Error('Timed out whilst waiting for DOM to settle'));
-				}, timeoutMs);
-
-				let debouncedResolve = debounce(async () => {
-					observer.disconnect();
-					clearTimeout(mainTimeout);
-					resolve();
-				}, debounceMs);
-
-				const observer = new MutationObserver(() => {
-					debouncedResolve();
-				});
-				const config = {
-					attributes: true,
-					childList: true,
-					subtree: true,
-				};
-				observer.observe(document.body, config);
-			});
-		},
-		timeoutMs,
-		debounceMs
-	);

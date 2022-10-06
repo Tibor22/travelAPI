@@ -10,7 +10,7 @@ export const getFlightBetweenTwoCountry = async (
 	const browser = await puppeteer.launch();
 	const page = await browser.newPage();
 	await page.goto(
-		`https://www.kayak.co.uk/flights/${origin}-${destination}/${from}/${to}?sort=price_a&fs=stops=1`,
+		`https://www.kayak.co.uk/flights/${origin}-${destination}/${from}/${to}?sort=price_a&fs=stops=-2`,
 		{
 			waitUntil: 'networkidle0',
 		}
@@ -45,10 +45,11 @@ export const getFlightBetweenTwoCountry = async (
 			}
 		}
 
-		const price = result.match(/\£[0-9]+/)[0]?.slice(1, 4) || 'See Link';
+		const price = result.match(/\£[0-9]+/)[0]?.slice(1, 5) || 'See Link';
 
 		return { provider: provider, price: +price };
 	});
+
 	browser.close();
 	return results;
 };

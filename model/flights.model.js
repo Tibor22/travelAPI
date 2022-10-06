@@ -49,6 +49,6 @@ export const getFlightBetweenTwoCountry = async (
 
 		return { provider: provider, price: +price };
 	});
-
+	browser.close();
 	return results;
 };

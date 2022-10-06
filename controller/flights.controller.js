@@ -3,7 +3,7 @@ import { getFlightBetweenTwoCountry } from '../model/flights.model.js';
 export const getCheapestFlightsForCountry = async (req, res) => {
 	const { origin, destination, from, to } = req.query;
 	const promise1 = new Promise((resolve, reject) => {
-		setTimeout(resolve, 20000, []);
+		setTimeout(resolve, 35000, []);
 	});
 
 	try {

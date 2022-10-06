@@ -2,15 +2,21 @@ import { getFlightBetweenTwoCountry } from '../model/flights.model.js';
 
 export const getCheapestFlightsForCountry = async (req, res) => {
 	const { origin, destination, from, to } = req.query;
+	const promise1 = new Promise((resolve, reject) => {
+		setTimeout(resolve, 20000, []);
+	});
 
-	const flights = await getFlightBetweenTwoCountry(
-		origin,
-		destination,
-		from,
-		to
-	);
-
-	console.log('FLIGHTS:', flights);
-
-	res.json(flights);
+	try {
+		const flights = await Promise.race([
+			promise1,
+			getFlightBetweenTwoCountry(origin, destination, from, to),
+		]);
+		res.json(flights);
+	} catch (err) {
+		return res.json([]);
+	}
 };
+
+const promise2 = new Promise((resolve, reject) => {
+	setTimeout(resolve, 100, 'two');
+});

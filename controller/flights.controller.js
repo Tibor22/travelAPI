@@ -16,7 +16,3 @@ export const getCheapestFlightsForCountry = async (req, res) => {
 		return res.json([]);
 	}
 };
-
-const promise2 = new Promise((resolve, reject) => {
-	setTimeout(resolve, 100, 'two');
-});

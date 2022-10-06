@@ -9,17 +9,6 @@ export const getFlightBetweenTwoCountry = async (
 ) => {
 	const browser = await puppeteer.launch();
 	const page = await browser.newPage();
-	console.log(
-		'origin: ',
-		origin,
-		'destination: ',
-		destination,
-		'from:',
-		from,
-		'to:',
-		to
-	);
-
 	await page.goto(
 		`https://www.kayak.co.uk/flights/${origin}-${destination}/${from}/${to}?sort=price_a&fs=stops=1`,
 		{
@@ -34,19 +23,30 @@ export const getFlightBetweenTwoCountry = async (
 		return result.slice(0, 5).map((result) => result.innerText);
 	});
 
-	console.log('RESULTS: ', results);
-
 	results = results.map((result, i, arr) => {
 		let provider;
 		if (result.split(/\r?\n/).includes('1 stop')) {
-			provider = result.split(/\r?\n/)[14];
+			if (
+				result.split(/\r?\n/)[14].length < 5 ||
+				/[0-9]/.test(result.split(/\r?\n/)[14])
+			) {
+				provider = 'Multiple Airlines';
+			} else {
+				provider = result.split(/\r?\n/)[14];
+			}
 		} else {
-			provider = result.split(/\r?\n/)[12];
+			if (
+				result.split(/\r?\n/)[12].length < 5 ||
+				/[0-9]/.test(result.split(/\r?\n/)[12])
+			) {
+				provider = 'Multiple Airlines';
+			} else {
+				provider = result.split(/\r?\n/)[12];
+			}
 		}
 
-		const price = result.match(/\£[0-9]+/)[0]?.slice(1, 4) || 'see link';
+		const price = result.match(/\£[0-9]+/)[0]?.slice(1, 4) || 'See Link';
 
-		if (provider == '1 stop') provider = 'Multiple Airlines';
 		return { provider: provider, price: +price };
 	});
 

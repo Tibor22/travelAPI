@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: './vars/.env' });
 import puppeteer from 'puppeteer-extra';
 import express from 'express';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';

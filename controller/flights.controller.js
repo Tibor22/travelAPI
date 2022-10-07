@@ -14,6 +14,6 @@ export const getCheapestFlightsForCountry = async (req, res) => {
 
 		res.json(flights);
 	} catch (err) {
-		return res.json([]);
+		return res.json(['Error loading puppeteer']);
 	}
 };
